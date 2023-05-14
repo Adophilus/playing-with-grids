@@ -1,56 +1,115 @@
 const Game = {
   config: {
-    height: 500,
-    width: 500,
+    dimensions: {
+      height: 500,
+      width: 500
+    }
   },
   block: {
     config: {
-      height: 50,
-      width: 50,
-    },
-  },
-};
+      dimensions: {
+        height: 50,
+        width: 50,
+        border: 2
+      },
+      colors: {
+        fill: 'hsl(0, 0%, 0%)',
+        accent: 'hsl(360, 70%, 50%)'
+      }
+    }
+  }
+}
 
-window.addEventListener("DOMContentLoaded", () => {
-  const canvas = document.querySelector("canvas");
-  const ctx = canvas?.getContext("2d");
+let canvas: HTMLCanvasElement = {} as HTMLCanvasElement
+let ctx: CanvasRenderingContext2D = {} as CanvasRenderingContext2D
 
-  if (!canvas || !ctx) return;
+window.addEventListener('DOMContentLoaded', () => {
+  const _canvas = document.querySelector<HTMLCanvasElement>('#canvas')
+  const _ctx = _canvas?.getContext('2d')
 
-  canvas.height = Game.config.height;
-  canvas.width = Game.config.width;
+  if (!_canvas || !_ctx) return
+  canvas = _canvas
+  ctx = _ctx
 
-  for (let j = 0; j < Game.config.height / Game.block.config.height; j++) {
-    ctx.fillStyle = "hsl(0, 0, 0)";
+  canvas.height = Game.config.dimensions.height
+  canvas.width = Game.config.dimensions.width
 
-    for (let i = 0; i < Game.config.width / Game.block.config.width; i++) {
+  // canvas.addEventListener('mousemove', handleMouseMove);
+  canvas.addEventListener('click', handleMouseClick);
+
+  drawGrid()
+})
+
+function handleMouseMove(event: MouseEvent) {
+  const { width: cellWidth, height: cellHeight } = Game.block.config.dimensions
+
+  // Calculate the mouse position relative to the canvas
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = event.clientX - rect.left;
+  const mouseY = event.clientY - rect.top;
+
+  // Calculate the grid cell coordinates
+  const cellX = Math.floor(mouseX / cellWidth);
+  const cellY = Math.floor(mouseY / cellHeight);
+
+  // Clear the canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw the grid
+  drawGrid();
+
+  // Draw a highlight at the current mouse position
+  ctx.fillStyle = Game.block.config.colors.accent
+  ctx.fillRect(cellX * cellWidth, cellY * cellHeight, cellWidth, cellHeight);
+}
+
+function handleMouseClick(event: MouseEvent) {
+  const { width: cellWidth, height: cellHeight } = Game.block.config.dimensions
+
+  // Calculate the mouse position relative to the canvas
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = event.clientX - rect.left;
+  const mouseY = event.clientY - rect.top;
+
+  // Calculate the grid cell coordinates
+  const cellX = Math.floor(mouseX / cellWidth);
+  const cellY = Math.floor(mouseY / cellHeight);
+
+  // Draw a highlight at the current mouse position
+  ctx.fillStyle = Game.block.config.colors.accent
+  ctx.fillRect(cellX * cellWidth, cellY * cellHeight, cellWidth, cellHeight);
+}
+
+function drawGrid() {
+  for (
+    let j = 0;
+    j < Game.config.dimensions.height / Game.block.config.dimensions.height;
+    j++
+  ) {
+    for (
+      let i = 0;
+      i < Game.config.dimensions.width / Game.block.config.dimensions.width;
+      i++
+    ) {
+      ctx.fillStyle = Game.block.config.colors.accent
       ctx.fillRect(
-        i * Game.block.config.width,
-        j * Game.block.config.height,
-        Game.block.config.width,
-        Game.block.config.height
-      );
-      // context.fillRect(i * Game.block.config.width, j * Game.block.config.height, Game.block.config.width, Game.block.config.height);
+        i * Game.block.config.dimensions.width,
+        j * Game.block.config.dimensions.height,
+        Game.block.config.dimensions.width,
+        Game.block.config.dimensions.height
+      )
+
+      ctx.fillStyle = Game.block.config.colors.fill
+      ctx.fillRect(
+        i * Game.block.config.dimensions.width +
+        Game.block.config.dimensions.border / 2,
+        j * Game.block.config.dimensions.height +
+        Game.block.config.dimensions.border / 2,
+        Game.block.config.dimensions.width -
+        Game.block.config.dimensions.border,
+        Game.block.config.dimensions.height -
+        Game.block.config.dimensions.border
+      )
     }
   }
-
-  ctx.lineWidth = 2
-  ctx.strokeStyle = "hsl(360, 70%, 50%)"
-  for (let j = 0; j < Game.config.height; j += Game.block.config.height) {
-
-    ctx.beginPath()
-    ctx.moveTo(0, j)
-    ctx.lineTo(Game.config.width, j)
-    ctx.stroke()
-
-    for (let i = 0; i < Game.config.width; i += Game.block.config.width) {
-      if (j !== 0)
-        break
-
-      ctx.beginPath()
-      ctx.moveTo(i + 1, 0)
-      ctx.lineTo(i + 1, Game.config.height)
-      ctx.stroke()
-    }
-  }
-});
+}
